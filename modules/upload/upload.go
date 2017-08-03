@@ -12,6 +12,7 @@ func BindRoute(r *iris.Router)  {
 
 			file, info, err := ctx.FormFile("image")
 
+
 			if err != nil {
 				ctx.HTML(iris.StatusInternalServerError,
 					"Error while uploading: <b>"+err.Error()+"</b>")
@@ -27,8 +28,9 @@ func BindRoute(r *iris.Router)  {
 				os.O_WRONLY|os.O_CREATE, 0666)
 
 			if err != nil {
-				ctx.HTML(iris.StatusInternalServerError,
-					"Error while uploading: <b>"+err.Error()+"</b>")
+				ctx.JSON(iris.StatusInternalServerError,iris.Map{
+					"error" : err.Error(),
+				})
 				return
 			}else{
 				ctx.JSON(iris.StatusOK,iris.Map{"info":info})

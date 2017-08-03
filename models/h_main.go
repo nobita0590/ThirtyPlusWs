@@ -13,12 +13,16 @@ type (
 		Db          *mgo.Database
 	}
 	FPage   struct {
-		Page  int
-		PerPage  int
+		Page  int   `form:"p"`
+		PerPage  int    `form:"row"`
 	}
+	Sort    []string
 )
 
 func (fp *FPage) Skip() int {
+	if fp.PerPage == 0 {
+		fp.PerPage = 10
+	}
 	if fp.Page < 1 {
 		fp.Page = 1
 	}
@@ -42,6 +46,11 @@ func NewMainModel(session *mgo.Session) MainModel {
 
 func (mm MainModel) GetNewsModel() NewsModel {
 	return NewsModel{
+		MainModel : mm,
+	}
+}
+func (mm MainModel) GetCategoryModel() CategoryModel {
+	return CategoryModel{
 		MainModel : mm,
 	}
 }
