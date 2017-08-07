@@ -73,6 +73,7 @@ func InitModel()  {
 	deepDb = deepDbConnect.DB(config.DBName)
 
 	categoryId = getLastId(CategoryCollection)
+	newsId = getLastId(NewsCollection)
 }
 
 func getLastId(collection string) int {

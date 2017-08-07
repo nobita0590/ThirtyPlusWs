@@ -34,7 +34,7 @@ type (
 )
 
 var (
-	newsId = getLastId(NewsCollection)
+	newsId = 0//getLastId(NewsCollection)
 )
 
 func (nf NewsFilter) GetFilter() bson.M {
