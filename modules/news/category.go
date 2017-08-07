@@ -32,12 +32,13 @@ func updateCategory(ctx *iris.Context)  {
 		//category := models.Category{}
 		form := struct {
 			models.Category
-			Fields []string
+			Fields models.Fields
 		}{}
 		if err := ctx.ReadForm(&form);err == nil {
 			if len(form.Fields) == 0 {
 				err = categoryModel.Update(form.Category)
 			}else{
+				form.Fields.RemoveField("IsActive")
 				err = categoryModel.UpdatePartial(form.Category,form.Fields...)
 			}
 			if err == nil {
@@ -46,16 +47,30 @@ func updateCategory(ctx *iris.Context)  {
 				response.ErrorInternalServer(ctx,err)
 			}
 		}else {
-			ctx.JSON(iris.StatusBadRequest,bson.M{
-				"error":err.Error(),
-				"form": ctx.Request.Form,
-			})
+			response.ErrorBadRequest(ctx,err)
 		}
 	} else {
 		response.ErrorInternalServer(ctx,my_error.DatabaseError)
 	}
 }
 
+func deleteCategory(ctx *iris.Context) {
+	if db,ok := shared.GetDbSession(ctx);ok {
+		filter := models.CategoryFilter{}
+		if err := ctx.ReadForm(&filter);err == nil {
+			categoryModel := models.NewMainModel(db).GetCategoryModel()
+			if err := categoryModel.Delete(filter);err == nil {
+				response.Success(ctx,filter.Ids)
+			}else{
+				response.ErrorInternalServer(ctx,err)
+			}
+		}else {
+			response.ErrorBadRequest(ctx,err)
+		}
+	} else {
+		response.ErrorInternalServer(ctx,my_error.DatabaseError)
+	}
+}
 
 func getCategory(ctx *iris.Context) {
 	filter := models.CategoryFilter{}
@@ -80,8 +95,11 @@ func getCategories(ctx *iris.Context)  {
 	if err := ctx.ReadForm(&filter);err == nil {
 		if db,ok := shared.GetDbSession(ctx);ok {
 			categoryModel := models.NewMainModel(db).GetCategoryModel()
-			if categories,err := categoryModel.GetList(filter);err == nil {
-				response.Success(ctx,categories)
+			if categories,count,err := categoryModel.GetList(filter);err == nil {
+				response.Success(ctx,bson.M{
+					"categories" : categories,
+					"count" : count,
+				})
 			}else{
 				response.ErrorInternalServer(ctx,err)
 			}

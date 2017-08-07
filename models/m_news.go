@@ -3,6 +3,7 @@ package models
 import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"time"
 )
 
 type (
@@ -16,7 +17,7 @@ type (
 		IsLogin             bool            `bson:"IsLogin"`
 		IsActive            bool            `bson:"IsActive"`
 		CategoriesId        []string           `bson:"CategoriesId"`
-		Created             MyTime          `bson:"Created"`
+		Created             time.Time          `bson:"Created"`
 		Description         string          `bson:"Description"`
 		TagDescription      string          `bson:"TagDescription"`
 		Content             string          `bson:"Content"`
@@ -28,35 +29,73 @@ type (
 		MainModel
 	}
 	NewsFilter struct {
-
+		FPage
 	}
 )
 
-func (f NewsFilter) GetFilter() bson.M {
-	fC := bson.M{}
-	return fC
+var (
+	newsId = getLastId(NewsCollection)
+)
+
+func (nf NewsFilter) GetFilter() bson.M {
+	f := make(bson.M)
+	return f
 }
 
-func (f NewsFilter) GetSort() []string {
-	return []string{}
+func (nf NewsFilter) GetSort() []string {
+	if len(nf.Sort) == 0 {
+		nf.Sort = []string{"Rank"}
+	}
+	return nf.Sort
 }
 
-func (ns NewsModel) Colection() *mgo.Collection {
-	return ns.Col("news")
+func (nf NewsFilter) GetFilterForOne() bson.M {
+	f := make(bson.M)
+
+	return f
 }
 
-func (ns NewsModel) Insert(n News) error {
-	return ns.Colection().Insert(n)
+func (nm NewsModel) Colection() *mgo.Collection {
+	return nm.Col(NewsCollection)
+}
+
+func (nm NewsModel) Insert(n *News) error {
+	n.Created = time.Now()
+	n.Id = newsId + 1
+	err := nm.Colection().Insert(n)
+	if err == nil {
+		newsId ++
+	}
+	return err
 }
 
 func (ns NewsModel) UpdatePartial(n News, fields ...string) error {
 	return ns.Colection().UpdateId(n.Id,bson.M{"$set":getValuePartial(n,fields...)})
 }
 
-func (ns NewsModel) GetNews(f NewsFilter) ([]News,error) {
-	listNews := []News{}
+func (nm NewsModel) GetNews(f NewsFilter) (data []News,count int,err error) {
 	sort := f.GetSort()
-	err := ns.Colection().Find(f.GetFilter()).Sort(sort...).All(&listNews)
-	return listNews,err
+	filterCondion := f.GetFilter()
+	err = nm.Colection().Find(filterCondion).Sort(sort...).All(&data)
+	if err == nil && f.GetCount {
+		count,_ = nm.Colection().Find(filterCondion).Count()
+	}
+	return
+}
+
+func (nm NewsModel) GetListAndFill(f NewsFilter)(data []News,count int)  {
+	sort := f.GetSort()
+	filterCondion := f.GetFilter()
+	iter := nm.Colection().Find(filterCondion).Sort(sort...).Iter()
+
+	news := News{}
+	for iter.Next(&news) {
+		data = append(data,news)
+	}
+
+	if f.GetCount {
+		count,_ = nm.Colection().Find(filterCondion).Count()
+	}
+	return
 }
 

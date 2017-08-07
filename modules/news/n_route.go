@@ -29,7 +29,7 @@ func BindRoute(route *iris.Router)  {
 			newsModel := models.NewMainModel(db).GetNewsModel()
 			news := models.News{}
 			if err := ctx.ReadForm(&news);err == nil {
-				if err := newsModel.Insert(news);err == nil {
+				if err := newsModel.Insert(&news);err == nil {
 					response.Success(ctx,bson.M{"data":news.Id})
 				} else {
 					ctx.JSON(iris.StatusBadRequest,bson.M{"error":err.Error()})
@@ -47,10 +47,14 @@ func BindRoute(route *iris.Router)  {
 	route.Options("/index", func(ctx *iris.Context) {
 		ctx.JSON(iris.StatusOK,bson.M{"status":true})
 	})
+	route.Options("/category", func(ctx *iris.Context) {
+		ctx.JSON(iris.StatusOK,bson.M{"status":true})
+	})
 	// category api
+	route.Get("/category",getCategory)
 	route.Post("/category",insertCategory)
 	route.Put("/category",updateCategory)
-	route.Get("/category",getCategory)
+	route.Delete("/category",deleteCategory)
 	route.Get("/category/list",getCategories)
 }
 

@@ -8,7 +8,7 @@ type MySession  mgo.Session
 
 func StartDb() (err error) {
 	mainSession, err = mgo.Dial("")
-	return
+	return  err
 }
 
 func CloneDb() *mgo.Session {

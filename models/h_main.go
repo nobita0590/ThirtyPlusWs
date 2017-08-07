@@ -1,35 +1,48 @@
 package models
 
 import (
-	"time"
 	"gopkg.in/mgo.v2"
 	"github.com/nobita0590/ThirtyPlusWs/config"
+	"gopkg.in/mgo.v2/bson"
+	"fmt"
+	"github.com/nobita0590/ThirtyPlusWs/db_connect"
 )
 
 type (
-	MyTime  time.Time
 	MainModel   struct {
 		Session     *mgo.Session
 		Db          *mgo.Database
 	}
 	FPage   struct {
-		Page  int   `form:"p"`
-		PerPage  int    `form:"row"`
+		Limit  int   `form:"limit"`
+		Offset  int    `form:"offset"`
+		Sort    Sort    `form:"sortBy"`
+		GetCount    bool    `form:"get_count"`
+		IsFill      bool    `form:"is_fill"`
 	}
 	Sort    []string
+	Fields  []string
 )
 
+var (
+	deepDbConnect *mgo.Session
+	deepDb *mgo.Database
+	CategoryCollection = "category"
+	NewsCollection = "news"
+)
+
+func (f *Fields) RemoveField(names ...string)  {
+
+}
+
 func (fp *FPage) Skip() int {
-	if fp.PerPage == 0 {
-		fp.PerPage = 10
+	if fp.Offset < 0 {
+		fp.Offset = 0
 	}
-	if fp.Page < 1 {
-		fp.Page = 1
+	if fp.Limit <= 0 {
+		fp.Limit = 10
 	}
-	if fp.PerPage < 5 {
-		fp.PerPage = 5
-	}
-	return (fp.PerPage - 1) * fp.PerPage
+	return fp.Offset
 }
 
 func (mm MainModel) Col(collectionName string) *mgo.Collection {
@@ -53,4 +66,23 @@ func (mm MainModel) GetCategoryModel() CategoryModel {
 	return CategoryModel{
 		MainModel : mm,
 	}
+}
+
+func InitModel()  {
+	deepDbConnect = db_connect.CloneDb()
+	deepDb = deepDbConnect.DB(config.DBName)
+
+	categoryId = getLastId(CategoryCollection)
+}
+
+func getLastId(collection string) int {
+	col := deepDb.C(collection)
+	val := struct {
+		Id int `bson:"_id"`
+	}{}
+	if err := col.Find(nil).Select(bson.M{"_id": 1}).Sort("-_id").One(&val);err == nil {
+		fmt.Println(val.Id)
+		return val.Id
+	}
+	return 0
 }

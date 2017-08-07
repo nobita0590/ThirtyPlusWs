@@ -5,6 +5,7 @@ import (
 	"gopkg.in/kataras/iris.v6/adaptors/gorillamux" // import the gorillamux adaptor
 	"github.com/nobita0590/ThirtyPlusWs/modules"
 	"github.com/nobita0590/ThirtyPlusWs/db_connect"
+	"github.com/nobita0590/ThirtyPlusWs/models"
 )
 
 func main() {
@@ -67,6 +68,8 @@ func main() {
 
 	if err := db_connect.StartDb();err != nil{
 		panic(err)
+	}else{
+		models.InitModel()
 	}
 
 	app.StaticWeb("/public", "./public")

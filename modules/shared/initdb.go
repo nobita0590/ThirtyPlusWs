@@ -16,7 +16,7 @@ func ShareAllMidlleware(ctx *iris.Context)  {
 	ctx.Set(DbSessionKey,db)
 	ctx.Request.ParseForm()
 	ctx.SetHeader("Access-Control-Allow-Origin","*")
-	ctx.SetHeader("Access-Control-Allow-Methods","POST, GET, OPTIONS,DELETE")
+	ctx.SetHeader("Access-Control-Allow-Methods","POST, PUT, GET, OPTIONS,DELETE")
 	ctx.Next()
 }
 
