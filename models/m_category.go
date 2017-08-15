@@ -95,11 +95,11 @@ func (cm CategoryModel) Colection() *mgo.Collection {
 
 func (cm CategoryModel) Insert(c *Category) error {
 	c.PrettyUrl = cm.getNewCategoryUrl(*c)
-	c.Id = categoryId + 1
+	c.Id = getLastId(CategoryCollection) + 1
 	err := cm.Colection().Insert(c)
-	if err == nil {
+	/*if err == nil {
 		categoryId ++
-	}
+	}*/
 	return err
 }
 

@@ -7,8 +7,8 @@ import (
 )
 
 type (
-	News struct {
-		Id                  int             `bson:"_id,omitempty"`
+	User struct {
+		Id                  bson.ObjectId   `bson:"_id,omitempty"`
 		Title               string          `bson:"Title"`
 		PrettyUrl           string          `bson:"PrettyUrl"`
 		PictrueUrl          string          `bson:"PictrueUrl"`
@@ -26,10 +26,10 @@ type (
 		MobileContent       string          `bson:"MobileContent"`
 		Viewed              int             `bson:"Viewed"`
 	}
-	NewsModel  struct {
+	UserModel  struct {
 		MainModel
 	}
-	NewsFilter struct {
+	UserFilter struct {
 		FPage
 		IsActive        int
 		Ids             []int
@@ -38,11 +38,7 @@ type (
 	}
 )
 
-var (
-	newsId = 0//getLastId(NewsCollection)
-)
-
-func (nf NewsFilter) GetFilter() bson.M {
+func (nf UserFilter) GetFilter() bson.M {
 	f := make(bson.M)
 	if nf.Id > 0 {
 		f["_id"] = nf.Id
@@ -50,14 +46,14 @@ func (nf NewsFilter) GetFilter() bson.M {
 	return f
 }
 
-func (nf NewsFilter) GetSort() []string {
+func (nf UserFilter) GetSort() []string {
 	if len(nf.Sort) == 0 {
 		nf.Sort = []string{"Created"}
 	}
 	return nf.Sort
 }
 
-func (nf NewsFilter) GetFilterForOne() bson.M {
+func (nf UserFilter) GetFilterForOne() bson.M {
 	f := make(bson.M)
 	if nf.Id > 0 {
 		f["_id"] = nf.Id
@@ -65,7 +61,7 @@ func (nf NewsFilter) GetFilterForOne() bson.M {
 	return f
 }
 
-func (nf NewsFilter) GetFilterForDelete() bson.M {
+func (nf UserFilter) GetFilterForDelete() bson.M {
 	f := make(bson.M)
 	if len(nf.Ids) > 0 {
 		f["_id"] = bson.M{"$in":nf.Ids}
@@ -75,44 +71,40 @@ func (nf NewsFilter) GetFilterForDelete() bson.M {
 
 
 
-func (nm NewsModel) Colection() *mgo.Collection {
-	return nm.Col(NewsCollection)
+func (nm UserModel) Colection() *mgo.Collection {
+	return nm.Col(UserCollection)
 }
 
-func (nm NewsModel) Get(cf NewsFilter) (news News, err error){
-	err = nm.Colection().Find(cf.GetFilterForOne()).One(&news)
+func (nm UserModel) Get(uf UserFilter) (news User, err error){
+	err = nm.Colection().Find(uf.GetFilterForOne()).One(&news)
 	return
 }
 
-func (nm NewsModel) Insert(n *News) error {
-	n.Created = time.Now()
-	n.Id = getLastId(NewsCollection) + 1
-	err := nm.Colection().Insert(n)
-	/*if err == nil {
-		newsId ++
-	}*/
-	return err
+func (nm UserModel) Insert(u *User) error {
+	u.Created = time.Now()
+	u.Id = bson.NewObjectId()
+	return nm.Colection().Insert(u)
 }
 
-func (nm NewsModel) UpdatePartial(n News, fields ...string) error {
+func (nm UserModel) UpdatePartial(n User, fields ...string) error {
 	return nm.Colection().UpdateId(n.Id,bson.M{"$set":getValuePartial(n,fields...)})
 }
 
-func (nm NewsModel) Update(n News) error {
+func (nm UserModel) Update(n User) error {
 	return nil
 }
 
-func (nm NewsModel) Delete(cf NewsFilter) error {
+func (nm UserModel) Delete(uf UserFilter) error {
 	value := false
-	if cf.IsActive > 0 {
+	if uf.IsActive > 0 {
 		value = true
 	}
-	return nm.Colection().Update(cf.GetFilterForDelete(),bson.M{"$set":bson.M{
+	return nm.Colection().Update(uf.GetFilterForDelete(),bson.M{"$set":bson.M{
 		"IsActive" : value,
 	}})
 }
 
-func (nm NewsModel) GetList(f NewsFilter) (data []News,count int,err error) {
+func (nm UserModel) GetList(f UserFilter) (data []User,count int,err error) {
 	if f.IsFill {
 		data,count = nm.GetListAndFill(f)
 		return
@@ -126,11 +118,11 @@ func (nm NewsModel) GetList(f NewsFilter) (data []News,count int,err error) {
 	return
 }
 
-func (nm NewsModel) GetListAndFill(f NewsFilter)(data []News,count int)  {
+func (nm UserModel) GetListAndFill(f UserFilter)(data []User,count int)  {
 	sort := f.GetSort()
 	filterCondion := f.GetFilter()
 	iter := nm.Colection().Find(filterCondion).Sort(sort...).Iter()
-	news := News{}
+	news := User{}
 	categoriesId := []int{}
 	for iter.Next(&news) {
 		categoriesId = append(categoriesId,news.CategoriesId...)

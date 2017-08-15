@@ -14,9 +14,9 @@ type (
 		Db          *mgo.Database
 	}
 	FPage   struct {
-		Limit  int   `form:"limit"`
-		Offset  int    `form:"offset"`
-		Sort    Sort    `form:"sortBy"`
+		Limit       int   `form:"limit"`
+		Offset      int    `form:"offset"`
+		Sort        Sort    `form:"sortBy"`
 		GetCount    bool    `form:"get_count"`
 		IsFill      bool    `form:"is_fill"`
 	}
@@ -29,6 +29,7 @@ var (
 	deepDb *mgo.Database
 	CategoryCollection = "category"
 	NewsCollection = "news"
+	UserCollection = "user"
 )
 
 func (f *Fields) RemoveField(names ...string)  {

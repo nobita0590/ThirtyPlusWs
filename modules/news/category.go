@@ -32,7 +32,7 @@ func updateCategory(ctx *iris.Context)  {
 		//category := models.Category{}
 		form := struct {
 			models.Category
-			Fields models.Fields
+			Fields      models.Fields
 		}{}
 		if err := ctx.ReadForm(&form);err == nil {
 			if len(form.Fields) == 0 {

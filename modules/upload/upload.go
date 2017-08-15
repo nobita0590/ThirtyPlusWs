@@ -4,6 +4,13 @@ import (
 	"gopkg.in/kataras/iris.v6"
 	"os"
 	"io"
+	"github.com/nobita0590/ThirtyPlusWs/helper"
+	"strings"
+	"gopkg.in/mgo.v2/bson"
+)
+
+var (
+	response helper.ResponseHelper
 )
 
 func BindRoute(r *iris.Router)  {
@@ -20,7 +27,8 @@ func BindRoute(r *iris.Router)  {
 			}
 
 			defer file.Close()
-			fname := info.Filename
+			nameSplit := strings.Split(info.Filename,`.`)
+			fname := bson.NewObjectId().Hex() + `.` + nameSplit[len(nameSplit) - 1]
 
 			// Create a file with the same name
 			// assuming that you have a folder named 'uploads'
@@ -33,7 +41,11 @@ func BindRoute(r *iris.Router)  {
 				})
 				return
 			}else{
-				ctx.JSON(iris.StatusOK,iris.Map{"info":info})
+				response.Success(ctx,bson.M{
+					"FileName" : fname,
+					"FilePath" : `public/uploads/` + fname,
+				})
+				//ctx.JSON(iris.StatusOK,iris.Map{"info":info})
 			}
 			defer out.Close()
 
